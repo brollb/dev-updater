@@ -29,6 +29,11 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function(req, res) {
+    if(req.headers['x-github-event'] === 'ping') {
+        console.log(new Date() + ': Received ping');
+        res.status(200).send(`Hi ${req.body.sender?.login}, pinging back.`, 200);
+    }
+
     const branch = req.body.ref.replace('refs/heads/','');
     console.log(`detected push to ${branch}!`);
     if (['master', 'main'].includes(branch)) {
