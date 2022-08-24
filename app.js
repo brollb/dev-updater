@@ -29,13 +29,24 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function(req, res) {
-    const branch = req.body.ref.replace('refs/heads/','');
-    console.log(`detected push to ${branch}!`);
-    if (['master', 'main'].includes(branch)) {
-        console.log(new Date() + ': updating dev project');
-        updateDevProject();
+    const githubEvent = req.headers['x-github-event'];
+    if(githubEvent === 'ping') {
+        console.log(new Date() + ': Received ping');
+        res.status(200).send(`Hi ${req.body.sender?.login}, pinging back.`, 200);
     }
-    res.sendStatus(200);
+    else if(githubEvent === 'push') {
+        const branch = req.body.ref.replace('refs/heads/','');
+        console.log(`detected push to ${branch}!`);
+        if (['master', 'main'].includes(branch)) {
+            console.log(new Date() + ': updating dev project');
+            updateDevProject();
+        }
+        res.sendStatus(200);
+    } else {
+        console.log(`received ${githubEvent}, which is not supported!`);
+        res.status(400).send('Only push and ping events are supported!');
+    }
+
 });
 
 const server = app.listen(9000, function(err) {
